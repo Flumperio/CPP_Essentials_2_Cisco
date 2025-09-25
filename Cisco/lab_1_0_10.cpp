@@ -9,8 +9,9 @@ private:
     int     item_Orders;
 
 public:
+    //Constuctor por defecto para crear el último valor del array
     ShopItemOrder () : item_Name(""), item_Price(0), item_Orders(0){};
-
+    //Sobrecarga del constructor para introducir datos (Se puede borrar, no se usa de momento)
     ShopItemOrder(string in, double pri, int num): item_Name(in), item_Price(pri), item_Orders(num) {
     }
     void set_itemName(string name) {
@@ -40,25 +41,10 @@ struct tmp_order {
     int     itemOrde{};
 };
 
-// void    imput_data (tmp_order *order) {
-//     cout << "Articulo: ";
-//     cin >> order->itemNam;
-//     cout << endl;
-//     cout << "Precio: ";
-//     cin >> order->itemPric;
-//     cout << endl;
-//     cout << "Unidades: ";
-//     cin >> order->itemOrde;
-//     cout << endl;
-//     do {
-//         cout << "Hay mas productos (Y/N): ";
-//         cin >> order->cont;
-//     }while (order->cont != "Y" && order->cont !="N");
-//     cout << endl;
-// }
-
-void    imput_data (ShopItemOrder *Order) {
+// Cargamos los datos en el objeto que corresponde
+string  imput_data (ShopItemOrder *Order) {
     string  item_tmp;
+    string  cont = "Y";
     double  price_tmp;
     int     order_tmp;
     cout << "Articulo: ";
@@ -70,8 +56,13 @@ void    imput_data (ShopItemOrder *Order) {
     cout << "Cantidad: ";
     cin >> order_tmp;
     Order->set_itemOrder(order_tmp);
+    do {
+        cout << "Hay más artículos (Y/N): ";
+        cin >> cont;
+    } while (cont !="Y" && cont !="N");
+    return cont;
 }
-
+//Eliminamos y creamos un nuevo array a medida que vamos intoduciendo items de manera dinámica.
 ShopItemOrder* new_array (ShopItemOrder *Order, int items) {
     auto* NewArray = new ShopItemOrder[items + 1];
     int cnt = 0;
@@ -86,18 +77,22 @@ ShopItemOrder* new_array (ShopItemOrder *Order, int items) {
 
 int main (){
     int     num_Order = 0;
+    double  total_Fact = 0.0;
     string  cont = "Y";
-    tmp_order item_Temporal;
-    item_Temporal.cont = "Y";
     ShopItemOrder *Order = new ShopItemOrder[num_Order + 1];
-    while (item_Temporal.cont == "Y") {
-        imput_data(&Order[num_Order]);
-//        Order[num_Order] = ShopItemOrder(item_Temporal.itemNam,item_Temporal.itemPric,item_Temporal.itemOrde);
-        cout << "Datos introducidos: " << Order[num_Order].get_itemName() << "\t" << Order[num_Order].get_itemPrice() << "\t" <<
-                Order[num_Order].get_itemOrder() << endl;
+    while (cont == "Y"){
+        cont = imput_data(&Order[num_Order]);
         Order = new_array(Order, num_Order + 1);
+        num_Order++;
     }
+    // Impresion de la factura
+    cout << "\tFactura Camisería Martín: " << endl << "-----------------------------------------" << endl;
+    cout << "Articulo:\t\t\tPrecio:\t\tTotal:" << endl;
+    for (int cnt = 0; cnt < num_Order; cnt++){
+        cout << Order[cnt].get_itemOrder() << " x " << Order[cnt].get_itemName() << "  ---->  " << Order[cnt].get_itemPrice() << "  ---->  " <<
+            Order[cnt].get_itemPrice()*Order[cnt].get_itemOrder() << endl;
+        total_Fact += Order[cnt].get_itemPrice()*Order[cnt].get_itemOrder();
+    }
+    cout << "Total de la Factura: \t\t\t" << total_Fact << endl;
     return 0;
-
-
 }
