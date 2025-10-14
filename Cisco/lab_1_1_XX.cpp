@@ -49,7 +49,10 @@ void Stack::push_stack(int value){
     stackpointer++;
 }
 
-//Vamos a crear una subclase que tenga un sumatorio del todo el stack. 
+//Vamos a crear una subclase que tenga un sumatorio del todo el stack.
+//La herencia en las clases por defecto es privada, es decir todos los miembros se vuelven privados
+//Para usarlos la tendrémos que importar como Public, que mantiene los permisos heredados.
+// class AddingStack: public Stack {
 class AddingStack:Stack{
 private:
     int sum;
