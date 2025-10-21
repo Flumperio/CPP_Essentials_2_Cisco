@@ -46,12 +46,32 @@ public:
         << " " << plazas_reservadas << "/" << plazas_disponibles <<
         "(" << ((plazas_reservadas * 100) / plazas_disponibles ) << "%) asientos reservados" << endl;
     }
-    void    add_plazas(int add_plazas){
-        this->plazas_reservadas += add_plazas;
-    }
-    void    cancel_plazas(int cancel_plazas){
-        this->plazas_reservadas  -= cancel_plazas;
+    bool    add_plazas(int add_plazas){
+        if (this->plazas_reservadas + add_plazas > this->plazas_overbooking){
+            cout << "No se puede realizar la operación" << endl;
+            return true;
         }
+        else{
+            this->plazas_reservadas += add_plazas;
+            return false;
+        }
+    }
+    bool    cancel_plazas(int cancel_plazas){
+        if (plazas_reservadas - cancel_plazas < 0){
+            cout << "No se puede realizar la operación" << endl;
+            return true;
+        }
+        else{
+            this->plazas_reservadas  -= cancel_plazas;
+            return false;
+        }
+    }
+    int     cantidad_plazas(){
+        return this->plazas_reservadas;
+    }
+    int     cantidad_overbooking(){
+        return this->plazas_overbooking;
+    }
    
 };
 
@@ -67,7 +87,7 @@ bool verificar_entrada(string entrada, string& accion, int& cantidad) {
         accion = "";
         cantidad = 0;
         return false;
-}
+    }
     str_lower(entrada);
     pos_espacio = entrada.find(' ');
     if (pos_espacio == string::npos)
@@ -77,6 +97,8 @@ bool verificar_entrada(string entrada, string& accion, int& cantidad) {
     if (parte_numerica.empty() || parte_numerica.find_first_of("01234567890") == string::npos)
         return true;
     cantidad = stoi(parte_numerica);
+    if (accion != "add" && accion != "cancel")
+        return true;
     return false;
 }
 
@@ -92,9 +114,11 @@ void modificar_datos(Reporte& vuelo){
         if (comando_erroneo)
             cout << "Error de comando. Usar add XX, cancel XX o quit." << endl;
         else if (accion == "add")
-            vuelo.add_plazas(cantidad);
+            comando_erroneo = vuelo.add_plazas(cantidad);
         else if (accion == "cancel")
             vuelo.cancel_plazas(cantidad);
+        if (!comando_erroneo)
+            vuelo.imprimir_estado();
     } while (entrada_usuario != "quit");
 }
 
@@ -110,6 +134,5 @@ int main () {
     Reporte Reporte_Vuelos(id, disponibles, reservadas);
     Reporte_Vuelos.imprimir_estado();
     modificar_datos(Reporte_Vuelos);
-    Reporte_Vuelos.imprimir_estado();
     return 0;
 }
