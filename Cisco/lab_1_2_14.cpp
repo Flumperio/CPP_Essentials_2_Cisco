@@ -49,23 +49,30 @@ public:
     bool    add_plazas(int add_plazas){
         if (this->plazas_reservadas + add_plazas > this->plazas_overbooking){
             cout << "No se puede realizar la operación" << endl;
-            return false;
+            return true;
         }
         else{
             this->plazas_reservadas += add_plazas;
-            return true;
+            return false;
         }
     }
     bool    cancel_plazas(int cancel_plazas){
         if (plazas_reservadas - cancel_plazas < 0){
             cout << "No se puede realizar la operación" << endl;
-            return false;
+            return true;
         }
         else{
             this->plazas_reservadas  -= cancel_plazas;
-            return true;
+            return false;
         }
     }
+    int     cantidad_plazas(){
+        return this->plazas_reservadas;
+    }
+    int     cantidad_overbooking(){
+        return this->plazas_overbooking;
+    }
+   
 };
 
 void str_lower (string &entrada){
@@ -109,8 +116,8 @@ void modificar_datos(Reporte& vuelo){
         else if (accion == "add")
             comando_erroneo = vuelo.add_plazas(cantidad);
         else if (accion == "cancel")
-            comando_erroneo = vuelo.cancel_plazas(cantidad);
-        if (comando_erroneo)
+            vuelo.cancel_plazas(cantidad);
+        if (!comando_erroneo)
             vuelo.imprimir_estado();
     } while (entrada_usuario != "quit");
 }
