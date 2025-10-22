@@ -19,120 +19,152 @@
 // *****************************************
 #include <iostream>
 #include <string>
-#include <stdio.h>
+#include <cctype>
+#include <limits>
 
 using namespace std;
 
 class Reporte {
 private:
-    int     id_vuelo;
-    int     plazas_disponibles;
-    int     plazas_reservadas;
-    int     plazas_overbooking;
+    int id_vuelo;
+    int plazas_disponibles;
+    int plazas_reservadas;
+    int plazas_overbooking;
+
+    static constexpr double FACTOR_OVERBOOKING = 1.05; // 105%
 
 public:
-    // El constructor lo podemos inicializar de dos maneras, en este caso recibe tres valores, y los incializamos,
-    // en la declaración o en el cuerpo. Es más eficiente lo primero, si no hay que operar sobre los valores.
-    Reporte(int int_vuelo, int int_disponibles, int int_reservadas): 
-        id_vuelo(int_vuelo), plazas_disponibles(int_disponibles), 
-        plazas_reservadas(int_reservadas), plazas_overbooking(plazas_disponibles*1.05)
+    // Constructor
+    Reporte(int id, int disponibles, int reservadas)
+        : id_vuelo(id),
+          plazas_disponibles(disponibles > 0 ? disponibles : 0),
+          plazas_reservadas(reservadas >= 0 ? reservadas : 0),
+          plazas_overbooking(static_cast<int>(disponibles * FACTOR_OVERBOOKING))
     {
         if (plazas_reservadas > plazas_overbooking)
-            plazas_reservadas = (plazas_disponibles * 105) / 100;
+            plazas_reservadas = plazas_overbooking;
     }
 
-    void    imprimir_estado(){
-        cout << "Numero Vuelo: " << id_vuelo << endl
-        << " " << plazas_reservadas << "/" << plazas_disponibles <<
-        "(" << ((plazas_reservadas * 100) / plazas_disponibles ) << "%) asientos reservados" << endl;
+    // Mostrar el estado actual del vuelo
+    void imprimir_estado() const {
+        cout << "\nNúmero de vuelo: " << id_vuelo << endl;
+        cout << "Reservas: " << plazas_reservadas << " / " << plazas_disponibles
+             << " (" << (plazas_reservadas * 100 / plazas_disponibles)
+             << "% ocupación)" << endl;
     }
-    bool    add_plazas(int add_plazas){
-        if (this->plazas_reservadas + add_plazas > this->plazas_overbooking){
-            cout << "No se puede realizar la operación" << endl;
-            return true;
-        }
-        else{
-            this->plazas_reservadas += add_plazas;
+
+    // Añadir plazas
+    bool add_plazas(int cantidad) {
+        if (plazas_reservadas + cantidad > plazas_overbooking) {
+            cout << "No se puede realizar la operación (supera el límite de overbooking)\n";
             return false;
         }
+        plazas_reservadas += cantidad;
+        return true;
     }
-    bool    cancel_plazas(int cancel_plazas){
-        if (plazas_reservadas - cancel_plazas < 0){
-            cout << "No se puede realizar la operación" << endl;
-            return true;
-        }
-        else{
-            this->plazas_reservadas  -= cancel_plazas;
+
+    // Cancelar plazas
+    bool cancel_plazas(int cantidad) {
+        if (plazas_reservadas - cantidad < 0) {
+            cout << "No se puede realizar la operación (reservas negativas)\n";
             return false;
         }
+        plazas_reservadas -= cantidad;
+        return true;
     }
-    int     cantidad_plazas(){
-        return this->plazas_reservadas;
-    }
-    int     cantidad_overbooking(){
-        return this->plazas_overbooking;
-    }
-   
 };
 
-void str_lower (string &entrada){
-    for (char &c : entrada)
+// --- Funciones auxiliares ---
+
+// Pasa una cadena a minúsculas
+void str_lower(string &texto) {
+    for (char &c : texto)
         c = tolower(c);
 }
 
-bool verificar_entrada(string entrada, string& accion, int& cantidad) {
-    size_t  pos_espacio = 0;
-    string  parte_numerica = "";
-    if (entrada == "quit"){
-        accion = "";
-        cantidad = 0;
-        return false;
+// Analiza el comando del usuario
+bool procesar_entrada(const string &entrada, string &accion, int &cantidad) {
+    string texto = entrada;
+    str_lower(texto);
+
+    // Si el usuario quiere salir
+    if (texto == "quit") {
+        accion = "quit";
+        return true;
     }
-    str_lower(entrada);
-    pos_espacio = entrada.find(' ');
-    if (pos_espacio == string::npos)
-        return true;
-    accion = entrada.substr(0, pos_espacio);
-    parte_numerica = entrada.substr(pos_espacio + 1);
-    if (parte_numerica.empty() || parte_numerica.find_first_of("01234567890") == string::npos)
-        return true;
+
+    size_t espacio = texto.find(' ');
+    if (espacio == string::npos) return false;
+
+    accion = texto.substr(0, espacio);
+    string parte_numerica = texto.substr(espacio + 1);
+
+    if (parte_numerica.empty()) return false;
+
+    // Verificamos que sea un número
+    for (char c : parte_numerica)
+        if (!isdigit(c)) return false;
+
     cantidad = stoi(parte_numerica);
-    if (accion != "add" && accion != "cancel")
-        return true;
-    return false;
+    if (accion != "add" && accion != "cancel") return false;
+
+    return true;
 }
 
-void modificar_datos(Reporte& vuelo){
-    string  entrada_usuario;
-    string  accion;
-    int     cantidad;
-    bool    comando_erroneo = false;
-    do {
-        cout << "Que quieres hacer ?: ";
-        getline(cin, entrada_usuario);
-        comando_erroneo = verificar_entrada(entrada_usuario, accion, cantidad);
-        if (comando_erroneo)
-            cout << "Error de comando. Usar add XX, cancel XX o quit." << endl;
-        else if (accion == "add")
-            comando_erroneo = vuelo.add_plazas(cantidad);
-        else if (accion == "cancel")
-            vuelo.cancel_plazas(cantidad);
-        if (!comando_erroneo)
-            vuelo.imprimir_estado();
-    } while (entrada_usuario != "quit");
+// Control de operaciones
+void modificar_datos(Reporte &vuelo) {
+    string entrada, accion;
+    int cantidad = 0;
+
+    while (true) {
+        cout << "\n¿Qué quieres hacer? (add N / cancel N / quit): ";
+        getline(cin, entrada);
+
+        if (!procesar_entrada(entrada, accion, cantidad)) {
+            cout << "Comando no válido. Intenta de nuevo.\n";
+            continue;
+        }
+
+        if (accion == "quit")
+            break;
+        else if (accion == "add") {
+            if (vuelo.add_plazas(cantidad))
+                vuelo.imprimir_estado();
+        } else if (accion == "cancel") {
+            if (vuelo.cancel_plazas(cantidad))
+                vuelo.imprimir_estado();
+        }
+    }
 }
 
-int main () {
-    int     id = 1;
-    int     disponibles = 0;
-    int     reservadas = 0;
+// --- Función principal ---
+
+int main() {
+    int id = 1;
+    int disponibles = 0;
+    int reservadas = 0;
+
     cout << "Introduce el número de plazas disponibles: ";
-    cin >> disponibles;
+    while (!(cin >> disponibles) || disponibles <= 0) {
+        cout << "Valor no válido. Introduce un número positivo: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
     cout << "Introduce el número de reservas: ";
-    cin >> reservadas;
-    cin.ignore();
-    Reporte Reporte_Vuelos(id, disponibles, reservadas);
-    Reporte_Vuelos.imprimir_estado();
-    modificar_datos(Reporte_Vuelos);
+    while (!(cin >> reservadas) || reservadas < 0) {
+        cout << "Valor no válido. Introduce un número positivo o cero: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // limpiar buffer
+
+    Reporte vuelo(id, disponibles, reservadas);
+    vuelo.imprimir_estado();
+
+    modificar_datos(vuelo);
+
+    cout << "\nPrograma finalizado.\n";
     return 0;
 }

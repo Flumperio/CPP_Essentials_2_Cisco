@@ -25,20 +25,23 @@ using namespace std;
 
 class Reporte {
 private:
-    int     id_vuelo;
-    int     plazas_disponibles;
-    int     plazas_reservadas;
-    int     plazas_overbooking;
+    int                     id_vuelo;
+    int                     plazas_disponibles;
+    int                     plazas_reservadas;
+    int                     plazas_overbooking;
+    static constexpr double FACTOR_OVERBOOKING = 1.05; // 105%
 
 public:
     // El constructor lo podemos inicializar de dos maneras, en este caso recibe tres valores, y los incializamos,
     // en la declaración o en el cuerpo. Es más eficiente lo primero, si no hay que operar sobre los valores.
     Reporte(int int_vuelo, int int_disponibles, int int_reservadas): 
-        id_vuelo(int_vuelo), plazas_disponibles(int_disponibles), 
-        plazas_reservadas(int_reservadas), plazas_overbooking(plazas_disponibles*1.05)
+        id_vuelo(int_vuelo),
+        plazas_disponibles(int_disponibles > 0 ? int_disponibles : 0),
+        plazas_reservadas(int_reservadas >= 0 ? int_reservadas : 0),
+        plazas_overbooking(static_cast<int>(int_disponibles * FACTOR_OVERBOOKING))
     {
         if (plazas_reservadas > plazas_overbooking)
-            plazas_reservadas = (plazas_disponibles * 105) / 100;
+            plazas_reservadas = plazas_overbooking;
     }
 
     void    imprimir_estado(){
@@ -46,33 +49,37 @@ public:
         << " " << plazas_reservadas << "/" << plazas_disponibles <<
         "(" << ((plazas_reservadas * 100) / plazas_disponibles ) << "%) asientos reservados" << endl;
     }
-    bool    add_plazas(int add_plazas){
-        if (this->plazas_reservadas + add_plazas > this->plazas_overbooking){
+    bool    add_plazas(int cantidad){
+        if (plazas_reservadas + cantidad > plazas_overbooking){
             cout << "No se puede realizar la operación" << endl;
             return false;
         }
         else{
-            this->plazas_reservadas += add_plazas;
+            plazas_reservadas += cantidad;
             return true;
         }
     }
-    bool    cancel_plazas(int cancel_plazas){
-        if (plazas_reservadas - cancel_plazas < 0){
+    bool    cancel_plazas(int cantidad){
+        if (plazas_reservadas - cantidad < 0){
             cout << "No se puede realizar la operación" << endl;
             return false;
         }
         else{
-            this->plazas_reservadas  -= cancel_plazas;
+            this->plazas_reservadas  -= cantidad;
             return true;
         }
     }
 };
+// --- Funciones auxiliares ---
 
-void str_lower (string &entrada){
-    for (char &c : entrada)
+// Pasa una cadena a minúsculas
+
+void str_lower (string &texto){
+    for (char &c : texto)
         c = tolower(c);
 }
 
+// Analiza el comando del usuario
 bool verificar_entrada(string entrada, string& accion, int& cantidad) {
     size_t  pos_espacio = 0;
     string  parte_numerica = "";
