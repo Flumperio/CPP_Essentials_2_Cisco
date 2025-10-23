@@ -102,7 +102,7 @@ bool verificar_entrada(string entrada, string& accion, int& cantidad) {
     return false;
 }
 
-void modificar_datos(Reporte& vuelo){
+void entrada_datos(Reporte& vuelo){
     string  entrada_usuario;
     string  accion;
     int     cantidad;
@@ -133,6 +133,6 @@ int main () {
     cin.ignore();
     Reporte Reporte_Vuelos(id, disponibles, reservadas);
     Reporte_Vuelos.imprimir_estado();
-    modificar_datos(Reporte_Vuelos);
+    entrada_datos(Reporte_Vuelos);
     return 0;
 }
