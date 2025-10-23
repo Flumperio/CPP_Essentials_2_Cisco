@@ -49,6 +49,8 @@ public:
         if (plazas_reservadas > plazas_overbooking)
             plazas_reservadas = plazas_overbooking;
     }
+    ~Reporte(){
+        cout << "Destruido: " << id_vuelo << endl; 
 
     void    imprimir_estado(){
         cout << "Numero Vuelo: " << id_vuelo << endl
@@ -81,6 +83,15 @@ public:
         }
     }
 };
+// --- Estructura de intercambio ---
+struct  datos_vuelo {
+    string  accion = "";
+    int     vuelo = 0;
+    int     cantidad = 0;
+    int     cnt_vuelo = 0;
+};
+
+
 // --- Funciones auxiliares ---
 
 // Pasa una cadena a minúsculas
@@ -91,10 +102,11 @@ void str_lower (string &texto){
 }
 
 // Analiza el comando del usuario
-bool verificar_entrada(string entrada, string& accion, int& cantidad) {
+bool verificar_entrada(string entrada, int& vuelo, string& accion, int& cantidad) {
     size_t  pos_espacio = 0;
     string  parte_numerica = "";
     if (entrada == "quit"){
+        vuelo = 0;
         accion = "";
         cantidad = 0;
         return false;
@@ -134,10 +146,15 @@ int entrada_datos(Reporte& vuelo){
     return cnt_vuelos;
 }
 
+int ft_split(string entrada){
+
+
+}
+
 int main (){
-    int     cnt_vuelos = 0;
+    datos_vuelo datos_vuelo; 
     Reporte* informacion_vuelos = nullptr;
-    if (informacion_vuelos[cnt_vuelos].show_id() <= 0)
+    if (informacion_vuelos[datos_vuelo.cnt_vuelo].show_id() <= 0)
         cout << "No hay vuelos disponibles." << endl;
     cnt_vuelos = entrada_datos(informacion_vuelos[cnt_vuelos]);
     return 0;
